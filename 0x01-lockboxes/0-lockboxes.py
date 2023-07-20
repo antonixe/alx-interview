@@ -2,20 +2,20 @@
 '''A module for working with lockboxes.
 '''
 
-
 def canUnlockAll(boxes):
-    '''Checks if all the boxes in a list of boxes containing the keys
-    (indices) to other boxes can be unlocked given that the first
-    box is unlocked.
-    '''
+    """
+    Determines if all the boxes can be opened.
+    :param boxes: a list of lists, where each inner list represents the keys in a box
+    :return: True if all boxes can be opened, else False
+    """
     n = len(boxes)
+    keys = [0]
     opened = [False] * n
     opened[0] = True
-    keys = [key for key in boxes[0]]
     while keys:
-        key = keys.pop(0)
-        if key >= 0 and key < n:
-            if not opened[key]:
+        current_key = keys.pop()
+        for key in boxes[current_key]:
+            if key < n and not opened[key]:
                 opened[key] = True
-                keys.extend(boxes[key])
+                keys.append(key)
     return all(opened)
