@@ -1,65 +1,48 @@
 #!/usr/bin/python3
-
-import sys
-import re
-
-# Initialize variables
-total_size = 0
-status_counts = {}
-
-# Define a function to print the statistics
-#!/usr/bin/python3
-
+"""
+    script that reads stdin line by line and computes metrics
+"""
 import sys
 
 
-def print_msg(dict_sc, total_file_size):
-    """
-    Method to print
-    Args:
-        dict_sc: dict of status codes
-        total_file_size: total of the file
-    Returns:
-        Nothing
-    """
+if __name__ == '__main__':
+    # initialize variables to store metrics
+    total_file_size = 0
+    codes = ["200", "301", "400", "401", "403", "404", "405", "500"]
+    processed_line = 0
+    statistics = {}
+    for code in codes:
+        statistics[code] = 0
 
-    print("File size: {}".format(total_file_size))
-    for key, val in sorted(dict_sc.items()):
-        if val != 0:
-            print("{}: {}".format(key, val))
+    def print_statistics(statistics: dict, total_file_size: int):
+        print('File size: {}'.format(total_file_size))
+        for code, count in sorted(statistics.items()):
+            if count:
+                print("{}: {}".format(code, count))
 
+    try:
+        for line in sys.stdin:
+            processed_line += 1
+            data = line.split()
+            try:
+                status_code = data[-2]
+                if status_code in statistics:
+                    statistics[status_code] += 1
+            except BaseException:
+                # if status code isn't in the correct position, skip line
+                pass
+            try:
+                file_size = int(data[-1])
+                total_file_size += file_size
+            except BaseException:
+                # if file size isn't in the correct position, skip line
+                pass
 
-total_file_size = 0
-code = 0
-counter = 0
-dict_sc = {"200": 0,
-           "301": 0,
-           "400": 0,
-           "401": 0,
-           "403": 0,
-           "404": 0,
-           "405": 0,
-           "500": 0}
-
-try:
-    for line in sys.stdin:
-        parsed_line = line.split()  # ✄ trimming
-        parsed_line = parsed_line[::-1]  # inverting
-
-        if len(parsed_line) > 2:
-            counter += 1
-
-            if counter <= 10:
-                total_file_size += int(parsed_line[0])  # file size
-                code = parsed_line[1]  # status code
-
-                if (code in dict_sc.keys()):
-                    dict_sc[code] += 1
-
-            if (counter == 10):
-                print_msg(dict_sc, total_file_size)
-                counter = 0
-
-finally:
-    print_msg(dict_sc, total_file_size)
-    sys.exit(0)
+            # After every 10 lines print statistics
+            if processed_line % 10 == 0:
+                print_statistics(statistics, total_file_size)
+        print_statistics(statistics, total_file_size)
+    except KeyboardInterrupt:
+        # if the keyboard is interrupted (control C) print final statistics
+        print_statistics(statistics, total_file_size)
+        raise
